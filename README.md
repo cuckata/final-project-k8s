@@ -48,4 +48,6 @@
 14.go to AWS > EC2 > Load Balancers and get the DNS of your new DNS
 15.open the URL in browser 
 16.ENJOY! 
+
+THE URL FOR MY APP IS http://a02efe548514541ae9bef05814b43377-1317879840.eu-central-1.elb.amazonaws.com/
  -->
