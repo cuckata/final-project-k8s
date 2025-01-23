@@ -41,13 +41,19 @@ jobs:
         docker push $IMAGE_NAME:$COMMIT_SHA
         docker push $IMAGE_NAME:latest
 
-    # Step 6: Scan the Docker image with Trivy
+    # Step 6: Install Trivy
+    - name: Install Trivy
+      run: |
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+        export PATH=$PATH:$HOME/.local/bin
+        trivy --version
+
+    # Step 7: Scan the Docker image with Trivy
     - name: Scan Docker image with Trivy
       run: |
         IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/cuci-repo"
         COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
         docker pull $IMAGE_NAME:$COMMIT_SHA
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
         trivy image --severity HIGH,CRITICAL --exit-code 1 $IMAGE_NAME:$COMMIT_SHA
 
   smoke-tests:
