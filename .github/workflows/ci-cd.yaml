@@ -39,8 +39,11 @@ jobs:
     - name: Install Trivy
       run: |
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-        echo "PATH=$PATH:$HOME/bin" >> $GITHUB_ENV
-        echo "Trivy installed at $(which trivy)"
+        echo "Adding Trivy to PATH..."
+        export PATH=$PATH:$HOME/bin:$HOME/.local/bin
+        echo "PATH=$PATH" >> $GITHUB_ENV
+        ls -l $HOME/bin
+        ls -l $HOME/.local/bin
         trivy --version
 
     - name: Update Trivy Database
