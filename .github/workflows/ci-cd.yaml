@@ -1,4 +1,4 @@
-name: Pipeline with Trivy and Smoke Tests
+name: Pipeline with Smoke Tests (trivy removed)
 
 on:
   pull_request:
