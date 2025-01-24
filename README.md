@@ -1,4 +1,3 @@
-<!-- 
 1.first we create S3 bucket in AWS for terraform in which we will keep the .tfstate file (NOT MANDATORY, YOU CAN KEEP YOUR .tfstate FILE LOCAL)
     aws s3api create-bucket --bucket my-terraform-state-cecko --region eu-central-1 --create-bucket-configuration LocationConstraint=eu-central-1
 2.enable versioning on the newly created S3 bucket (NOT MANDATORY, ONLY NICE TO DO IF YOU DO STEP 1)
@@ -50,4 +49,3 @@
 16.ENJOY! 
 
 THE URL FOR MY APP IS http://a02efe548514541ae9bef05814b43377-1317879840.eu-central-1.elb.amazonaws.com/
- -->
