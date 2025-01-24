@@ -1,4 +1,4 @@
-1.first we create S3 bucket in AWS for terraform in which we will keep the .tfstate file (NOT MANDATORY, YOU CAN KEEP YOUR .tfstate FILE LOCAL)
+1.first we create S3 bucket in AWS for terraform in which we will keep the .tfstate file (NOT MANDATORY, YOU CAN KEEP YOUR .tfstate FILE LOCAL)\n
     aws s3api create-bucket --bucket my-terraform-state-cecko --region eu-central-1 --create-bucket-configuration LocationConstraint=eu-central-1
 2.enable versioning on the newly created S3 bucket (NOT MANDATORY, ONLY NICE TO DO IF YOU DO STEP 1)
     aws s3api put-bucket-versioning --bucket my-terraform-state-cecko --versioning-configuration Status=Enabled
