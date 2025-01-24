@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-project-deployment
+  labels:
+    app: my-project
+spec:
+  replicas: 3 # Number of pods
+  selector:
+    matchLabels:
+      app: my-project
+  template:
+    metadata:
+      labels:
+        app: my-project
+    spec:
+      imagePullSecrets:
+      - name: ecr-secret
+      containers:
+      - name: my-private-ecr
+        image: 207567794154.dkr.ecr.eu-central-1.amazonaws.com/my-private-ecr:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: ENVIRONMENT
+          value: "production"

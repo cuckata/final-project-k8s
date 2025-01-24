@@ -1,0 +1,19 @@
+{
+  "name": "app.js",
+  "version": "1.0.0",
+  "description": "kur",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"kur\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sherifkunch/NodeJS-Docker-Project-2025-jan19-devops.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sherifkunch/NodeJS-Docker-Project-2025-jan19-devops/issues"
+  },
+  "homepage": "https://github.com/sherifkunch/NodeJS-Docker-Project-2025-jan19-devops#readme"
+}
