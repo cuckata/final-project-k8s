@@ -28,7 +28,7 @@ jobs:
     - name: Terraform Init
       run: |
         cd tf
-        terraform init \
+        terraform init -reconfigure\
           -backend-config="bucket=${{ secrets.BACKEND_BUCKET }}" \
           -backend-config="key=${{ secrets.BACKEND_KEY }}" \
           -backend-config="region=${{ secrets.BACKEND_REGION }}" \
@@ -43,6 +43,7 @@ jobs:
           -var="eks_nodegroup_role_arn=${{ secrets.EKS_NODEGROUP_ROLE_ARN }}" \
           -var="elb_role_arn=${{ secrets.ELB_ROLE_ARN }}" \
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
+
     - name: Terraform Apply (Create/Update EKS Cluster)
       run: |
         cd tf
