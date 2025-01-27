@@ -37,6 +37,7 @@ jobs:
 
     - name: Terraform Plan
       run: | 
+        cd tf
         terraform plan \
           -var="eks_cluster_role_arn=${{ secrets.EKS_CLUSTER_ROLE_ARN }}" \
           -var="eks_nodegroup_role_arn=${{ secrets.EKS_NODEGROUP_ROLE_ARN }}" \
