@@ -7,6 +7,10 @@ resource "aws_vpc" "eks_vpc" {
   }
 }
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 # Create private subnets for the VPC
 resource "aws_subnet" "private" {
   count = length(var.private_subnets)
