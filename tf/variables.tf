@@ -70,3 +70,8 @@ variable "autoscaling_role_arn" {
   description = "ARN for the AutoScaling role"
   type        = string
 }
+
+variable "ecr_repo_name" {
+  description = "Name of ECR Repo"
+  type        = string
+}

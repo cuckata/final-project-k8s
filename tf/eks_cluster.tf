@@ -27,15 +27,3 @@ resource "aws_eks_node_group" "eks_nodes" {
     aws_eks_cluster.eks_cluster
   ]
 }
-
-# Create an IAM role for Elastic Load Balancing
-resource "aws_iam_role_policy_attachment" "elb_policy_attachment" {
-  role       = var.elb_role_arn
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-}
-
-# Attach IAM role for Auto Scaling
-resource "aws_iam_role_policy_attachment" "autoscaling_policy_attachment" {
-  role       = var.autoscaling_role_arn
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
