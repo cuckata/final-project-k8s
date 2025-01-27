@@ -38,3 +38,39 @@ resource "aws_subnet" "public" {
     Name = "public-subnet-${count.index}"
   }
 }
+
+#Create Elastic IP for NAT Gateway
+resource "aws_eip" "eip" {
+  vpc = true
+}
+
+#Create NAT Gateway
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.nat.id
+  subnet_id = aws_subnet.public[0].id
+
+  tags = {
+    Name = "NAT Gateway for node group"
+  }
+}
+
+#Create Route table to route traffic from private subnets through the NAT Gateway
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.eks_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat.id
+  }
+
+  tags = {
+    Name = "private-route-table"
+  }
+}
+
+# Associate the route table with your private subnets
+resource "aws_route_table_association" "private" {
+  count          = length(var.private_subnets)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
+}
