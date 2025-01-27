@@ -6,13 +6,17 @@ on:
       - main
 
 jobs:
-#terrafrom job creates/updates EKS cluster
   terraform:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 'latest'  # Specify the version of Terraform you want to use
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
@@ -27,7 +31,6 @@ jobs:
     - name: Terraform Apply (Create/Update EKS Cluster)
       run: terraform apply -auto-approve
 
-#build-and-push job builds the docker image and pushes it to the targeted ECR
   build-and-push:
     needs: terraform
     runs-on: ubuntu-latest
@@ -57,7 +60,6 @@ jobs:
         docker push $IMAGE_NAME:$COMMIT_SHA
         docker push $IMAGE_NAME:latest
 
-#after building and pushing the docker image to ECR the deployment is updated to use latest image
   deploy-to-kubernetes:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -79,3 +81,24 @@ jobs:
         kubectl set image deployment/my-app my-app=${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME}}:latest
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
+
+  smoke-tests:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+
+    - name: Run Smoke Tests
+      run: |
+        IMAGE_NAME=${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME}}
+        COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+        docker run --rm $IMAGE_NAME:$COMMIT_SHA ./smoke.sh
