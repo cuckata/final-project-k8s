@@ -6,7 +6,8 @@ COPY package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY app.js /app/
+COPY public /app/public/
 
 EXPOSE 3000
 

@@ -1,10 +1,10 @@
 {
   "name": "app.js",
   "version": "1.0.0",
-  "description": "kur",
+  "description": "pesho",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"kur\""
+    "test": "echo \"pesho\""
   },
   "repository": {
     "type": "git",
