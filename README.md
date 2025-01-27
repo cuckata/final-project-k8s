@@ -1,7 +1,6 @@
-
 # Kubernetes Deployment Project
 
-This guide outlines the steps to set up an AWS infrastructure using Terraform, build and push a Docker image to Amazon Elastic Container Registry (ECR), and deploy the application to Amazon Elastic Kubernetes Service (EKS).
+This guide outlines the steps to automatically set up AWS infrastructure using Terraform, build and push a Docker image to Amazon ECR, and deploy the application to Amazon EKS using GitHub Actions.
 
 ## Prerequisites
 
@@ -9,121 +8,77 @@ This guide outlines the steps to set up an AWS infrastructure using Terraform, b
 2. Terraform installed.  
 3. Docker installed.  
 4. Kubernetes CLI (`kubectl`) installed.  
+5. GitHub Actions enabled for the repository.
+
+---
+
+## Automated Pipeline Overview
+
+This project uses GitHub Actions to automate the following steps:
+
+1. **Terraform Infrastructure Setup**  
+2. **Docker Image Build & Push to ECR**  
+3. **Kubernetes Deployment to EKS**
 
 ---
 
 ## Steps
 
-### 1. Create S3 Bucket for Terraform State (Optional)  
-1. Create an S3 bucket to store the `.tfstate` file:  
-   ```
-   aws s3api create-bucket --bucket my-terraform-state-cecko --region eu-central-1 --create-bucket-configuration LocationConstraint=eu-central-1
-   ```  
-2. Enable versioning for the S3 bucket:  
-   ```
-   aws s3api put-bucket-versioning --bucket my-terraform-state-cecko --versioning-configuration Status=Enabled
-   ```  
+### 1. Terraform Infrastructure Setup
 
-### 2. Create DynamoDB Table for State Locking (Optional)  
-1. Create a DynamoDB table to prevent concurrent Terraform operations:  
-   ```bash
-   aws dynamodb create-table \
-       --table-name terraform-locks \
-       --attribute-definitions AttributeName=LockID,AttributeType=S \
-       --key-schema AttributeName=LockID,KeyType=HASH \
-       --billing-mode PAY_PER_REQUEST
-   ```  
+The infrastructure is deployed automatically via GitHub Actions using the Terraform configuration located in the `tf/` directory.
 
-### 3. Configure Terraform and Deploy Infrastructure  
-1. Explanation of what is happening in `main.tf`:  
-   - Configure the Terraform backend to use the S3 bucket for state storage (optional).  
-   - Set up the provider.  
-   - Create the following resources:  
-     - ECR  
-     - VPC  
-     - EKS  
+- **What happens in the Terraform step?**  
+   - Terraform is used to create:
+     - ECR repository for storing Docker images.
+     - VPC and subnets.
+     - EKS cluster
+     - Necessary IAM roles and policies.
 
-2. Run the Terraform commands from the root directory:  
-   ```
-   terraform init
-   terraform plan
-   terraform apply
-   ```  
-   This process will take approximately 15-20 minutes as the EKS takes a lot of time.
+The `terraform` GitHub Action job handles the initialization and application of Terraform automatically.
 
----
+### 2. Docker Image Build and Push
 
-### 4. Build and Push Docker Image  
-1. Build the Docker image using the provided `Dockerfile`:  
-   ```
-   docker build -t my-project .
-   ```  
+The Docker image is automatically built and pushed to Amazon ECR as part of the GitHub Actions pipeline.
 
-2. Authenticate Docker to Amazon ECR:  
-   - Get your AWS Account ID:  
-     ```
-     aws sts get-caller-identity --query "Account" --output text
-     ```  
-   - Authenticate docker to ECR:  
-     ```
-     aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
-     ```  
+- **Dockerfile**: The `Dockerfile` in the root directory defines how the Docker image is built.
 
-3. Tag the Docker image:  
-   ```
-   docker tag my-project:latest <account-id>.dkr.ecr.<region>.amazonaws.com/my-project:latest
-   ```  
+- **GitHub Actions for Docker**:  
+   - The `build-and-push` job automates:
+     - Building the Docker image.
+     - Logging into AWS ECR.
+     - Tagging the image with the latest version.
+     - Pushing the tagged image to ECR.
 
-4. Push the tagged Docker image to ECR:  
-   ```
-   docker push <account-id>.dkr.ecr.<region>.amazonaws.com/my-project:latest
-   ```  
-
-5. Verify the image in ECR:  
-   - Through CLI:  
-     ```
+- **Verify Image in ECR**:  
+   You can verify the image in the ECR repository either via the AWS CLI:
+     ```bash
      aws ecr describe-images --repository-name my-project
-     ```  
-   - Through AWS Management Console:  
-     - Navigate to ECR.  
-     - Open your registry and verify the image.
+     ```
+   or through the AWS Management Console.
 
----
+### 3. Kubernetes Deployment
 
-### 5. Deploy to EKS  
-1. Apply the Kubernetes manifests:  
-   ```
-   kubectl apply -f k8s/deployment.yaml
-   kubectl apply -f k8s/service.yaml
-   ```  
+After the Docker image is pushed to ECR, the deployment to EKS is automatically triggered by GitHub Actions.
 
-2. Configure local access to the EKS cluster:  
-   ```
-   aws eks update-kubeconfig --region <your-region> --name <cluster-name>
-   ```  
+- **Kubernetes Manifests**:  
+   The Kubernetes manifests (`k8s/deployment.yaml` and `k8s/service.yaml`) define the app deployment and services.
 
-3. Verify connectivity:  
-   ```
-   kubectl get nodes
-   kubectl get pods
-   ```  
+- **GitHub Actions for Deployment**:  
+   The `deploy-to-kubernetes` job handles:
+     - Applying Kubernetes manifests to EKS.
+     - Automatically configuring `kubectl` with AWS EKS credentials.
 
-4. Get the DNS of the Load Balancer:  
-   - through CLI
-   ```
+- **Verify Deployment**:  
+   The pipeline will output logs of the deployment status. You can also check manually using `kubectl`:
+     ```bash
+     kubectl get nodes
+     kubectl get pods
+     ```
+
+### 4. Load Balancer and Application Access
+
+- **Find Load Balancer DNS**:  
+   The DNS name of the load balancer that exposes the application can be found with the AWS CLI:
+   ```bash
    aws elb describe-load-balancers --query "LoadBalancerDescriptions[*].{Name:LoadBalancerName,DNS:DNSName}" --output table
-   ```
-   - Through UI: Go to AWS > EC2 > Load Balancers > Copy the DNS name.
-
-5. Open the application in your browser using the Load Balancer URL.
-
----
-
-## Application URL
-
-Access my deployed application at:  
-http://a02efe548514541ae9bef05814b43377-1317879840.eu-central-1.elb.amazonaws.com/
-
----
-
-Enjoy your deployed Kubernetes application!
