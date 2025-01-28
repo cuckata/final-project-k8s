@@ -100,27 +100,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-central-1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
 
-    - name: Update kubeconfig for EKS
-      run: |
-        aws eks update-kubeconfig --region eu-central-1 --name $(terraform output -raw eks_cluster_name)
+      - name: Get EKS cluster name using AWS CLI
+        id: get-cluster-name
+        run: |
+          EKS_CLUSTER_NAME=$(aws eks list-clusters --region eu-central-1 --query "clusters[0]" --output text)
+          echo "EKS_CLUSTER_NAME=$EKS_CLUSTER_NAME" >> $GITHUB_ENV
 
-    - name: Ensure Service Readiness
-      run: |
-        kubectl rollout status deployment/my-app --timeout=120s
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --region eu-central-1 --name ${{ env.EKS_CLUSTER_NAME }}
 
-    - name: Deploy to Kubernetes
-      run: |
-        IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
-        kubectl set image deployment/my-app my-app=$IMAGE_NAME:latest
-        kubectl apply -f deployment.yaml
-        kubectl apply -f service.yaml
+      - name: Ensure Service Readiness
+        run: |
+          kubectl rollout status deployment/my-app --timeout=120s
+
+      - name: Deploy to Kubernetes
+        run: |
+          IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
+          kubectl set image deployment/my-app my-app=$IMAGE_NAME:latest
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
 
   smoke-tests:
     needs: deploy-to-kubernetes
