@@ -73,12 +73,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
 
-    - name: Fetch ECR Repository URL
-      run: |
-        cd tf
-        ECR_URL=$(terraform output -raw ecr_repository_url)
-        echo "ECR_URL=$ECR_URL" >> $GITHUB_ENV
-
     - name: Log in to Amazon ECR
       run: |
         aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
