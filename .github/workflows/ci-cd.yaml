@@ -40,7 +40,6 @@ jobs:
         cd tf
         terraform plan \
           -var="eks_cluster_role_arn=${{ secrets.EKS_CLUSTER_ROLE_ARN }}" \
-          -var="eks_nodegroup_role_arn=${{ secrets.EKS_NODEGROUP_ROLE_ARN }}" \
           -var="elb_role_arn=${{ secrets.ELB_ROLE_ARN }}" \
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
 
@@ -49,7 +48,6 @@ jobs:
         cd tf
         terraform apply -auto-approve \
           -var="eks_cluster_role_arn=${{ secrets.EKS_CLUSTER_ROLE_ARN }}" \
-          -var="eks_nodegroup_role_arn=${{ secrets.EKS_NODEGROUP_ROLE_ARN }}" \
           -var="elb_role_arn=${{ secrets.ELB_ROLE_ARN }}" \
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
 
@@ -98,8 +96,13 @@ jobs:
       run: |
         aws eks update-kubeconfig --region eu-central-1 --name $(terraform output -raw eks_cluster_name)
 
+    - name: Ensure Service Readiness
+      run: |
+        kubectl rollout status deployment/my-app --timeout=120s
+
     - name: Deploy to Kubernetes
       run: |
+        cd k8s
         kubectl set image deployment/my-app my-app=${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME}}:latest
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
