@@ -53,11 +53,6 @@ jobs:
           -var="elb_role_arn=${{ secrets.ELB_ROLE_ARN }}" \
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
 
-    - name: Fetch ECR Repository URL
-      run: |
-        cd tf
-        terraform output -raw ecr_repository_url
-
   build-and-push:
     needs: terraform
     runs-on: ubuntu-latest
@@ -79,13 +74,8 @@ jobs:
 
     - name: Build and push Docker image to ECR
       run: |
-        if [ -z "$ECR_URL" ]; then
-          echo "Error: ECR_URL is not set."
-          exit 1
-        fi
-
-        # Define IMAGE_NAME using $ECR_URL
-        IMAGE_NAME=$ECR_URL
+        # Use the AWS_ECR_URL and AWS_ECR_NAME from secrets
+        IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
 
         # Get the first 7 characters of the commit SHA for tagging
         COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
@@ -127,8 +117,8 @@ jobs:
 
     - name: Deploy to Kubernetes
       run: |
-        cd k8s
-        kubectl set image deployment/my-app my-app=${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME}}:latest
+        IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
+        kubectl set image deployment/my-app my-app=$IMAGE_NAME:latest
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
 
@@ -149,6 +139,6 @@ jobs:
 
     - name: Run Smoke Tests
       run: |
-        IMAGE_NAME=${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME}}
+        IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
         COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
         docker run --rm $IMAGE_NAME:$COMMIT_SHA ./smoke.sh
