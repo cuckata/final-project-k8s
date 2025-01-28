@@ -8,7 +8,9 @@ RUN npm install
 
 COPY app.js /app/
 COPY public /app/public/
-COPY smoke.sh /app/smoke.sh
+COPY smoke.sh /app/
+
+RUN chmod +x /app/smoke.sh
 
 EXPOSE 3000
 
