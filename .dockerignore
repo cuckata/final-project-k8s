@@ -2,7 +2,6 @@
 .github
 .terraform/
 .terraform.lock.hcl
-k8s
 tf
 example.txt
 README.md

@@ -121,7 +121,7 @@ jobs:
         run: |
           IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
           ls
-          cd k8s
+          cd ./k8s
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
           kubectl set image deployment/my-project-deployment my-project=my-project-deployment=$IMAGE_NAME:latest
