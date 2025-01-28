@@ -42,6 +42,9 @@ resource "aws_subnet" "public" {
 #Create Elastic IP for NAT Gateway
 resource "aws_eip" "eip" {
   domain = "vpc"
+  depends_on = [ 
+    aws_internet_gateway.igw
+   ]
 }
 
 #Create an Internet Gateway
@@ -60,11 +63,33 @@ resource "aws_nat_gateway" "nat" {
 
   depends_on = [ 
     aws_eip.eip,
-    aws_internet_gateway.igw
+    aws_internet_gateway.igw,
+    aws_subnet.public
    ]
   tags = {
     Name = "NAT Gateway for node group"
   }
+}
+
+#Create a public route table with a route to the IGW
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.eks_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "public-route-table"
+  }
+}
+
+#Associate the public route table with your public subnets
+resource "aws_route_table_association" "public" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
 }
 
 #Create Route table to route traffic from private subnets through the NAT Gateway
