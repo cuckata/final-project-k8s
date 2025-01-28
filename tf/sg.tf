@@ -13,6 +13,15 @@ resource "aws_security_group" "eks_cluster_sg" {
     cidr_blocks = var.private_subnets
   }
 
+# Allow worker nodes to communicate with the control plane on ephemeral ports (1025-65535)
+ingress {
+  description = "Allow communication from worker nodes to control plane"
+  from_port   = 1025
+  to_port     = 65535
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
 #Outbound Rules
   egress {
     description = "Allow all outbound traffic"
