@@ -89,6 +89,11 @@ jobs:
         docker push $IMAGE_NAME:$COMMIT_SHA
         docker push $IMAGE_NAME:latest
 
+    - name: Fetch ECR Repository URL
+      run: |
+        cd tf
+        terraform output -raw ecr_repository_url
+
   deploy-to-kubernetes:
     needs: build-and-push
     runs-on: ubuntu-latest
