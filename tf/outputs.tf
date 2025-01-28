@@ -1,6 +1,6 @@
 # Output the ECR repository URL
 output "ecr_repository_URL" {
-  value       = aws_ecr_repository.docker.repository_url
+  value       = "${aws_ecr_repository.docker.repository_url}"
   description = "The ECR repository URL"
 }
 
