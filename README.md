@@ -33,7 +33,6 @@ The infrastructure is deployed automatically via GitHub Actions using the Terraf
      - ECR repository for storing Docker images.
      - VPC and subnets.
      - EKS cluster
-     - Necessary IAM roles and policies.
 
 The `terraform` GitHub Action job handles the initialization and application of Terraform automatically.
 
