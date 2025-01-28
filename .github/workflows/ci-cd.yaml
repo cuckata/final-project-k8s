@@ -149,6 +149,10 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
 
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
+        
     - name: Run Smoke Tests
       run: |
         IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
