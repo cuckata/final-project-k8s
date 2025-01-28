@@ -120,6 +120,7 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
+          ls
           cd k8s
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
