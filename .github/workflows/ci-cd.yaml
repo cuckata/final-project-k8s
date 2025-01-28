@@ -54,11 +54,9 @@ jobs:
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
 
     - name: Fetch ECR Repository URL
-      id: fetch-ecr-url
       run: |
         cd tf
-        ECR_URL=$(terraform output -raw ecr_repository_URL)
-        echo "ECR_URL=$ECR_URL" >> $GITHUB_ENV
+        terraform output -raw ecr_repository_url
 
   build-and-push:
     needs: terraform
@@ -75,24 +73,43 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
 
+    - name: Fetch ECR Repository URL
+      run: |
+        cd tf
+        ECR_URL=$(terraform output -raw ecr_repository_url)
+        echo "ECR_URL=$ECR_URL" >> $GITHUB_ENV
+
     - name: Log in to Amazon ECR
-      id: login-ecr
       run: |
         aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_URL }}
 
     - name: Build and push Docker image to ECR
       run: |
-        IMAGE_NAME=$ECR_URL/${{ secrets.AWS_ECR_NAME }}
-        COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-        docker build -t $IMAGE_NAME:$COMMIT_SHA .
-        docker tag $IMAGE_NAME:$COMMIT_SHA $IMAGE_NAME:latest
-        docker push $IMAGE_NAME:$COMMIT_SHA
-        docker push $IMAGE_NAME:latest
+        if [ -z "$ECR_URL" ]; then
+          echo "Error: ECR_URL is not set."
+          exit 1
+        fi
 
-    - name: Fetch ECR Repository URL
-      run: |
-        cd tf
-        terraform output -raw ecr_repository_url
+        # Define IMAGE_NAME using $ECR_URL
+        IMAGE_NAME=$ECR_URL
+
+        # Get the first 7 characters of the commit SHA for tagging
+        COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+
+        # Build the Docker image
+        echo "Building Docker image: $IMAGE_NAME:$COMMIT_SHA"
+        docker build -t $IMAGE_NAME:$COMMIT_SHA .
+
+        # Tag the image with the "latest" tag
+        echo "Tagging Docker image: $IMAGE_NAME:latest"
+        docker tag $IMAGE_NAME:$COMMIT_SHA $IMAGE_NAME:latest
+
+        # Push both tags to ECR
+        echo "Pushing Docker image: $IMAGE_NAME:$COMMIT_SHA"
+        docker push $IMAGE_NAME:$COMMIT_SHA
+
+        echo "Pushing Docker image: $IMAGE_NAME:latest"
+        docker push $IMAGE_NAME:latest
 
   deploy-to-kubernetes:
     needs: build-and-push
