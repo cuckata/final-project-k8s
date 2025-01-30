@@ -44,7 +44,7 @@ jobs:
           -var="elb_role_arn=${{ secrets.ELB_ROLE_ARN }}" \
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
 
-    - name: Terraform Apply (Create/Update EKS Cluster)
+    - name: Terraform Apply 
       run: |
         cd tf
         terraform apply -auto-approve \
