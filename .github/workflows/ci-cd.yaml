@@ -44,7 +44,7 @@ jobs:
           -var="elb_role_arn=${{ secrets.ELB_ROLE_ARN }}" \
           -var="autoscaling_role_arn=${{ secrets.AUTOSCALING_ROLE_ARN }}"
 
-    - name: Terraform Apply 
+    - name: Terraform Apply
       run: |
         cd tf
         terraform apply -auto-approve \
@@ -74,21 +74,16 @@ jobs:
 
     - name: Build and push Docker image to ECR
       run: |
-        # Use the AWS_ECR_URL and AWS_ECR_NAME from secrets
         IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
 
-        # Get the first 7 characters of the commit SHA for tagging
         COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 
-        # Build the Docker image
         echo "Building Docker image: $IMAGE_NAME:$COMMIT_SHA"
         docker build -t $IMAGE_NAME:$COMMIT_SHA .
 
-        # Tag the image with the "latest" tag
         echo "Tagging Docker image: $IMAGE_NAME:latest"
         docker tag $IMAGE_NAME:$COMMIT_SHA $IMAGE_NAME:latest
 
-        # Push both tags to ECR
         echo "Pushing Docker image: $IMAGE_NAME:$COMMIT_SHA"
         docker push $IMAGE_NAME:$COMMIT_SHA
 
