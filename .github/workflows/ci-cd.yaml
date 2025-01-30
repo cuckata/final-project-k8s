@@ -120,10 +120,11 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           IMAGE_NAME="${{ secrets.AWS_ECR_URL }}/${{ secrets.AWS_ECR_NAME }}"
-          kubectl set image deployment/my-project-deployment my-private-ecr=$IMAGE_NAME:latest
           cd ./k8s
           kubectl apply -f deployment.yaml
           kubectl apply -f service.yaml
+          kubectl set image deployment/my-project-deployment my-private-ecr=$IMAGE_NAME:latest
+
 
       - name: Verify Deployment
         run: |
