@@ -125,7 +125,6 @@ jobs:
           kubectl apply -f service.yaml
           kubectl set image deployment/my-project-deployment my-private-ecr=$IMAGE_NAME:latest
 
-
       - name: Verify Deployment
         run: |
           kubectl rollout status deployment/my-project-deployment --timeout=120s
